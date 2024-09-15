@@ -79,7 +79,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         this.overriddenAttributes = dependency.getAttributes();
         this.artifacts = dependency.getDependencyMetadata().getArtifacts();
         this.exclusions = dependency.getExclusions();
-        this.capabilitySelectors = dependency.getSelector().getRequested().getCapabilitySelectors();
+        this.capabilitySelectors = dependency.getSelector().getComponentSelector().getCapabilitySelectors();
         this.graphVariantSelector = graphVariantSelector;
         this.consumerSchema = consumerSchema;
         this.ownArtifacts = calculatedValueContainerFactory.create(
