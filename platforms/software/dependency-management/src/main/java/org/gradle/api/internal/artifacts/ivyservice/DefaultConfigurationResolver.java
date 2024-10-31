@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.model.CalculatedValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -49,8 +50,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     @Override
-    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
-        return resolutionExecutor.resolveBuildDependencies(resolveContext);
+    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext, CalculatedValue<ResolverResults> futureCompleteResults) {
+        return resolutionExecutor.resolveBuildDependencies(resolveContext, futureCompleteResults);
     }
 
     @Override

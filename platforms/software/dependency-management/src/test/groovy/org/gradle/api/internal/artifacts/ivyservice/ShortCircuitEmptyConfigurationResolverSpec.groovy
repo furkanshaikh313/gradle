@@ -32,6 +32,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.model.CalculatedValue
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -49,7 +50,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         ResolveContext resolveContext = confWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveBuildDependencies(resolveContext)
+        def results = dependencyResolver.resolveBuildDependencies(resolveContext, Stub(CalculatedValue))
 
         then:
         def visitedArtifacts = results.visitedArtifacts
@@ -116,7 +117,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.resolutionStrategy >> resolutionStrategy
 
         when:
-        dependencyResolver.resolveBuildDependencies(resolveContext)
+        dependencyResolver.resolveBuildDependencies(resolveContext, Stub(CalculatedValue))
 
         then:
 
@@ -175,10 +176,10 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         ResolveContext resolveContext = confWithDependencies()
 
         when:
-        def results = dependencyResolver.resolveBuildDependencies(resolveContext)
+        def results = dependencyResolver.resolveBuildDependencies(resolveContext, Stub(CalculatedValue))
 
         then:
-        1 * delegate.resolveBuildDependencies(resolveContext) >> delegateResults
+        1 * delegate.resolveBuildDependencies(resolveContext, _) >> delegateResults
         results == delegateResults
     }
 

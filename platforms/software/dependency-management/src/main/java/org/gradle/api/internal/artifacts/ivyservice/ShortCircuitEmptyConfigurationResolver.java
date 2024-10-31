@@ -54,6 +54,7 @@ import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.model.CalculatedValue;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -79,7 +80,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
-    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
+    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext, CalculatedValue<ResolverResults> futureCompleteResults) {
         RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
 
         VisitedGraphResults missingConfigurationResults =
@@ -92,7 +93,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         LocalVariantGraphResolveState rootVariant = rootComponent.getRootVariant();
         if (hasDependencies(rootVariant)) {
-            return delegate.resolveBuildDependencies(resolveContext);
+            return delegate.resolveBuildDependencies(resolveContext, futureCompleteResults);
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(rootComponent.getRootComponent(), rootVariant);
