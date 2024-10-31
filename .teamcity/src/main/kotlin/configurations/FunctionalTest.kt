@@ -26,6 +26,14 @@ sealed class ParallelizationMethod {
         override val extraBuildParameters: String = "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%"
     }
 
+    object TestDistributionAlpine : ParallelizationMethod() {
+        override val extraBuildParameters: String = listOf(
+            "-DenableTestDistribution=%enableTestDistribution%",
+            "-DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%",
+            "-PtestDistributionDogfoodingTag=gbt-dogfooding-staging"
+        ).joinToString(" ")
+    }
+
     class TeamCityParallelTests(val numberOfBatches: Int) : ParallelizationMethod()
 
     companion object {
@@ -35,6 +43,7 @@ sealed class ParallelizationMethod {
                 null -> None
                 None::class.simpleName -> None
                 TestDistribution::class.simpleName -> TestDistribution
+                TestDistributionAlpine::class.simpleName -> TestDistributionAlpine
                 TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(methodJsonObject.getIntValue("numberOfBatches"))
                 else -> throw IllegalArgumentException("Unknown parallelization method")
             }
