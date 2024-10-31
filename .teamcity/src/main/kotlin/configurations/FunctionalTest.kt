@@ -30,7 +30,8 @@ sealed class ParallelizationMethod {
         override val extraBuildParameters: String = listOf(
             "-DenableTestDistribution=%enableTestDistribution%",
             "-DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%",
-            "-PtestDistributionDogfoodingTag=gbt-dogfooding-staging"
+            "-PtestDistributionDogfoodingTag=gbt-dogfooding-staging",
+            "-PmaxTestDistributionLocalExecutors=0"
         ).joinToString(" ")
     }
 
