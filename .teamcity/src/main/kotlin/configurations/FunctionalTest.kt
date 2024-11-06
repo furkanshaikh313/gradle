@@ -28,9 +28,9 @@ sealed class ParallelizationMethod {
 
     object TestDistributionAlpine : ParallelizationMethod() {
         override val extraBuildParameters: String = listOf(
-            "-DenableTestDistribution=%enableTestDistribution%",
+            "-DenableTestDistribution=true",
             "-DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%",
-            "-PtestDistributionDogfoodingTag=gbt-dogfooding-staging",
+            "-PtestDistributionDogfoodingTag=alpine",
             "-PmaxTestDistributionLocalExecutors=0"
         ).joinToString(" ")
     }
