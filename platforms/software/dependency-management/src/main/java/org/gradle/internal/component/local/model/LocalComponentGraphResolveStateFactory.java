@@ -209,11 +209,8 @@ public class LocalComponentGraphResolveStateFactory {
         public void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor) {
             model.applyToMutableState(p -> {
                 VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
-
-                configurationsProvider.visitAll(configuration -> {
-                    if (configuration.isCanBeConsumed()) {
-                        visitor.accept(createVariantState(configuration));
-                    }
+                configurationsProvider.visitConsumable(configuration -> {
+                    visitor.accept(createVariantState(configuration));
                 });
             });
         }
