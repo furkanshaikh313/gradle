@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -211,7 +212,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
                 if (DefaultConfigurableFileCollection.this == fileCollection) {
                     throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
                 }
-                return true;
+                // Configurations cannot be a result of (a + b)
+                return !(fileCollection instanceof Configuration);
             }
 
             @Override
