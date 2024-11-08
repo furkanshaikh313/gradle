@@ -307,13 +307,13 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             task myTar(type: Tar) {
                 destinationDirectory = buildDir
 
-                assert compression == Compression.NONE
+                assert compression.get() == Compression.NONE
 
-                compression = Compression.GZIP
-                assert compression == Compression.GZIP
+                compression.set(Compression.GZIP)
+                assert compression.get() == Compression.GZIP
 
-                compression = Compression.BZIP2
-                assert compression == Compression.BZIP2
+                compression.set(Compression.BZIP2)
+                assert compression.get() == Compression.BZIP2
             }
 '''
 
@@ -642,7 +642,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << '''
             task tar(type: Tar) {
-                compression = Compression.GZIP
+                compression.set(Compression.GZIP)
                 from 'test'
                 include '**/*.txt'
                 destinationDirectory = buildDir
@@ -672,7 +672,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << '''
             task tar(type: Tar) {
-                compression = Compression.BZIP2
+                compression.set(Compression.BZIP2)
                 from 'test'
                 include '**/*.txt'
                 destinationDirectory = buildDir

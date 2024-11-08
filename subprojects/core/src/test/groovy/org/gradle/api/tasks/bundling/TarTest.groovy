@@ -31,32 +31,32 @@ class TarTest extends AbstractArchiveTaskTest {
 
     def "default values"() {
         expect:
-        tar.compression == Compression.NONE
+        tar.compression.get() == Compression.NONE
         tar.archiveExtension.get() == 'tar'
     }
 
     def "compression determines default extension"() {
         when:
-        tar.compression = Compression.GZIP
+        tar.compression.set(Compression.GZIP)
 
         then:
         tar.archiveExtension.get() == 'tgz'
 
         when:
-        tar.compression = Compression.BZIP2
+        tar.compression.set(Compression.BZIP2)
 
         then:
         tar.archiveExtension.get() == 'tbz2'
 
         when:
-        tar.compression = Compression.NONE
+        tar.compression.set(Compression.NONE)
 
         then:
         tar.archiveExtension.get() == 'tar'
 
         when:
         tar.archiveExtension.set('bin')
-        tar.compression = Compression.GZIP
+        tar.compression.set(Compression.GZIP)
 
         then:
         tar.archiveExtension.get() == 'bin'
