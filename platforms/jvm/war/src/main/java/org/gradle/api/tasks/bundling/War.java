@@ -119,10 +119,10 @@ public abstract class War extends Jar {
     }
 
     /**
-     * Returns the classpath to include in the WAR archive. Any JAR or ZIP files in this classpath are included in the {@code WEB-INF/lib} directory. Any directories in this classpath are included in
-     * the {@code WEB-INF/classes} directory.
-     *
-     * @return The classpath. Returns an empty collection when there is no classpath to include in the WAR.
+     * Classpath to include in the WAR archive.
+     * <p>
+     * Any JAR or ZIP files in this classpath are included in the {@code WEB-INF/lib} directory.
+     * Any directories in this classpath are included in the {@code WEB-INF/classes} directory.
      */
     @Classpath
     @ReplacesEagerProperty(
