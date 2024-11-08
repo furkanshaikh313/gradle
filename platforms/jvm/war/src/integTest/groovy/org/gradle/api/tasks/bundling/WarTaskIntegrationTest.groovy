@@ -300,7 +300,7 @@ task assertUnresolved {
 
 task war(type: War) {
     dependsOn assertUnresolved
-    classpath = configurations.conf
+    classpath = configurations.conf // TODO: this setter call bypasses the adapter, and sets the property directly, resolving the configuration
     destinationDirectory = buildDir
 }
 """
