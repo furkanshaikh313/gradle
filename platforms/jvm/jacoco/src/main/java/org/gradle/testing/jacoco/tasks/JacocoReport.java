@@ -82,7 +82,7 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
     @TaskAction
     public void generate() {
         new AntJacocoReport(getAntBuilder()).execute(
-            getJacocoClasspath(),
+            getJacocoClasspath().get(),
             projectName.get(),
             getAllClassDirs().filter(File::exists),
             getAllSourceDirs().filter(File::exists),

@@ -80,7 +80,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
     @TaskAction
     public void check() throws IOException {
         JacocoCheckResult checkResult = new AntJacocoCheck(getAntBuilder()).execute(
-            getJacocoClasspath(),
+            getJacocoClasspath().get(),
             projectName,
             getAllClassDirs().filter(File::exists),
             getAllSourceDirs().filter(File::exists),
