@@ -33,6 +33,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.wrapper.Wrapper",
+            "member": "Method org.gradle.api.tasks.wrapper.Wrapper.getAvailableDistributionTypes()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.tooling.events.problems.ProblemDefinition",
             "member": "Method org.gradle.tooling.events.problems.ProblemDefinition.getDocumentationLink()",
             "acceptation": "Change in incubating API",
