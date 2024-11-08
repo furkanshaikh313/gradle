@@ -125,10 +125,7 @@ public abstract class War extends Jar {
      * Any directories in this classpath are included in the {@code WEB-INF/classes} directory.
      */
     @Classpath
-    @ReplacesEagerProperty(
-        originalType = FileCollection.class,
-        adapter = ClasspathAdapter.class
-    )
+    @ReplacesEagerProperty(adapter = ClasspathAdapter.class)
     public abstract ConfigurableFileCollection getClasspath();
 
     /**
@@ -167,6 +164,11 @@ public abstract class War extends Jar {
     }
 
     static class ClasspathAdapter {
+        @BytecodeUpgrade
+        static FileCollection getClasspath(War task) {
+            return task.getClasspath();
+        }
+
         @BytecodeUpgrade
         static void setClasspath(War task, Object classpath) {
             task.getClasspath().setFrom(classpath);
