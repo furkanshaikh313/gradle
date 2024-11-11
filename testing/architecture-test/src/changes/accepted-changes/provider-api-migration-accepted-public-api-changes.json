@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.testFramework(groovy.lang.Closure)",
+            "acceptation": "Removed and replaced by TestFrameworkAdapter",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.wrapper.Wrapper",
             "member": "Method org.gradle.api.tasks.wrapper.Wrapper.setJarFile(java.lang.Object)",
             "acceptation": "Removed since it's an Object setter",

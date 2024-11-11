@@ -73,6 +73,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -177,7 +178,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     private final PatternFilterable patternSet;
     private final ConfigurableFileCollection stableClasspath;
-    private final Property<TestFramework> testFramework;
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
@@ -202,8 +202,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
         getDryRun().convention(false);
         getScanForTestClasses().convention(true);
-        testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
-//        getForkEvery().
+        getTestFramework().convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -579,7 +578,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath,
+        return new JvmTestExecutionSpec(getTestFramework().get(), classpath,
             modulePath, getCandidateClassFiles(), getScanForTestClasses().get(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions,
             getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
@@ -618,7 +617,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
         if (!javaVersion.isJava8Compatible()) {
-            if (testFramework.get() instanceof JUnitPlatformTestFramework) {
+            if (getTestFramework().get() instanceof JUnitPlatformTestFramework) {
                 throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
             } else {
                 DeprecationLogger.deprecate("Running tests on Java versions earlier than 8")
@@ -845,21 +844,25 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 7.3
      */
     @Nested
-    public Property<TestFramework> getTestFrameworkProperty() {
-        return testFramework;
-    }
+    @ReplacesEagerProperty(adapter = TestFrameworkAdapter.class)
+    public abstract Property<TestFramework> getTestFramework();
 
-    @Internal
-    @ToBeReplacedByLazyProperty(comment = "This will be removed")
-    public TestFramework getTestFramework() {
-        // TODO: Deprecate and remove this method
-        return testFramework.get();
-    }
+    static class TestFrameworkAdapter {
+        @BytecodeUpgrade
+        static TestFramework getTestFramework(Test test) {
+            return test.getTestFramework().get();
+        }
 
-    public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        // TODO: Deprecate and remove this method
-        options(testFrameworkConfigure);
-        return getTestFramework();
+        @BytecodeUpgrade
+        static Property<TestFramework> getTestFrameworkProperty(Test test) {
+            return test.getTestFramework();
+        }
+
+        @BytecodeUpgrade
+        static TestFramework testFramework(Test test, Closure testFrameworkConfigure) {
+            test.options(testFrameworkConfigure);
+            return test.getTestFramework().get();
+        }
     }
 
     /**
@@ -869,7 +872,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Nested
     public TestFrameworkOptions getOptions() {
-        return getTestFramework().getOptions();
+        return getTestFramework().get().getOptions();
     }
 
     /**
@@ -1005,13 +1008,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * then call useJunit() don't clear out their options.
      */
     void useTestFramework(TestFramework testFramework) {
-        Class<?> currentFramework = this.testFramework.get().getClass();
+        Class<?> currentFramework = this.getTestFramework().get().getClass();
         Class<?> newFramework = testFramework.getClass();
         if (currentFramework == newFramework) {
             return;
         }
 
-        this.testFramework.set(testFramework);
+        this.getTestFramework().set(testFramework);
     }
 
     private <T extends TestFrameworkOptions> void applyOptions(Class<T> optionsClass, Action<? super T> configuration) {
@@ -1193,7 +1196,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private boolean noCategoryOrTagOrGroupSpecified() {
-        TestFrameworkOptions frameworkOptions = getTestFramework().getOptions();
+        TestFrameworkOptions frameworkOptions = getTestFramework().get().getOptions();
         if (frameworkOptions == null) {
             return true;
         }

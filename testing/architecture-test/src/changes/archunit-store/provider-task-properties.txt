@@ -125,7 +125,6 @@ Method <org.gradle.api.tasks.testing.Test.getIncludes()> does not have raw retur
 Method <org.gradle.api.tasks.testing.Test.getMaxParallelForks()> does not have raw return type (int) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Test.java:0)
 Method <org.gradle.api.tasks.testing.Test.getModularity()> does not have raw return type (org.gradle.api.jvm.ModularitySpec) assignable to any of [Provider] in (Test.java:0)
 Method <org.gradle.api.tasks.testing.Test.getOptions()> does not have raw return type (org.gradle.api.tasks.testing.TestFrameworkOptions) assignable to any of [Provider] in (Test.java:0)
-Method <org.gradle.api.tasks.testing.Test.getTestFramework()> does not have raw return type (org.gradle.api.internal.tasks.testing.TestFramework) assignable to any of [Provider] in (Test.java:0)
 Method <org.gradle.api.tasks.testing.Test.getWorkingDir()> does not have raw return type (java.io.File) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Test.java:0)
 Method <org.gradle.api.tasks.testing.TestReport.getDestinationDir()> does not have raw return type (java.io.File) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (TestReport.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getProjectLayoutRegistry()> does not have raw return type (org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (InitBuild.java:0)
