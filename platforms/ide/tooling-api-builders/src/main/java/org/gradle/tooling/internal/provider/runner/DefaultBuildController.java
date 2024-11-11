@@ -24,6 +24,10 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
@@ -58,6 +62,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
+    private final BuildOperationRunner buildOperationRunner;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
@@ -67,7 +72,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
         BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
@@ -77,6 +83,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     /**
@@ -108,14 +115,31 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
         }
-        ToolingModelScope scope = getTarget(target, modelIdentifier, parameter != null);
 
+        // Include target resolution into the operation to identify all work (including build configuration)
+        // that is executed to provide the requested model
+        return buildOperationRunner.call(new CallableBuildOperation<BuildResult<?>>() {
+            @Override
+            public BuildResult<?> call(BuildOperationContext context) {
+                ToolingModelScope scope = getTarget(target, modelIdentifier, parameter != null);
+                return getModelForScope(scope, modelIdentifier.getName(), parameter);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Fetch model '" + modelIdentifier.getName() + "' for " + describeTarget(target))
+                    .progressDisplayName("Fetching model '" + modelIdentifier.getName() + "' for " + describeTarget(target));
+            }
+        });
+    }
+
+    private ProviderBuildResult<Object> getModelForScope(ToolingModelScope scope, String modelName, Object parameter) {
         Object model;
         try {
             if (parameter == null) {
-                model = scope.getModel(modelIdentifier.getName(), null);
+                model = scope.getModel(modelName, null);
             } else {
-                model = scope.getModel(modelIdentifier.getName(), parameterCarrierFactory.createCarrier(parameter));
+                model = scope.getModel(modelName, parameterCarrierFactory.createCarrier(parameter));
             }
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
@@ -133,6 +157,18 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     public <T> List<T> run(List<Supplier<T>> actions) {
         assertCanQuery();
         return controller.runQueryModelActions(actions);
+    }
+
+    private static String describeTarget(@Nullable Object target) {
+        if (target == null) {
+            return "default scope";
+        } else if (target instanceof GradleProjectIdentity) {
+            return "project scope";
+        } else if (target instanceof GradleBuildIdentity) {
+            return "build scope";
+        } else {
+            return "unknown scope";
+        }
     }
 
     private ToolingModelScope getTarget(@Nullable Object target, ModelIdentifier modelIdentifier, boolean parameter) {

@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerThreadRegistry;
@@ -36,6 +37,7 @@ public class BuildControllerFactory {
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
+    private final BuildOperationRunner buildOperationRunner;
 
     public BuildControllerFactory(
         WorkerThreadRegistry workerThreadRegistry,
@@ -44,7 +46,8 @@ public class BuildControllerFactory {
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
         BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.buildCancellationToken = buildCancellationToken;
@@ -53,9 +56,19 @@ public class BuildControllerFactory {
         this.sideEffectExecutor = sideEffectExecutor;
         this.parameterCarrierFactory = parameterCarrierFactory;
         this.payloadSerializer = payloadSerializer;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     public DefaultBuildController controllerFor(BuildTreeModelController controller) {
-        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, parameterCarrierFactory, buildEventConsumer, sideEffectExecutor, payloadSerializer);
+        return new DefaultBuildController(controller,
+            workerThreadRegistry,
+            buildCancellationToken,
+            buildStateRegistry,
+            parameterCarrierFactory,
+            buildEventConsumer,
+            sideEffectExecutor,
+            payloadSerializer,
+            buildOperationRunner
+        );
     }
 }
