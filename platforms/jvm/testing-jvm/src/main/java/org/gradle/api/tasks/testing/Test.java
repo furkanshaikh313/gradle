@@ -73,6 +73,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -174,12 +175,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
-    private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
-    private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
-    private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
@@ -187,7 +185,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().create();
-        classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
         stableClasspath.from(new Callable<Object>() {
@@ -202,8 +199,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
+
         getDryRun().convention(false);
+        getScanForTestClasses().convention(true);
         testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+//        getForkEvery().
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -271,9 +271,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 3.3
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public JavaVersion getJavaVersion() {
-        return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
+    @ReplacesEagerProperty
+    public Provider<JavaVersion> getJavaVersion() {
+        return getJavaLauncher().map(launcher -> JavaVersion.toVersion(launcher.getMetadata().getLanguageVersion().asInt()));
     }
 
     /**
@@ -579,7 +579,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        return new JvmTestExecutionSpec(getTestFramework(), classpath,
+            modulePath, getCandidateClassFiles(), getScanForTestClasses().get(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions,
+            getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
     private void validateExecutableMatchesToolchain() {
@@ -611,7 +613,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @TaskAction
     public void executeTests() {
-        JavaVersion javaVersion = getJavaVersion();
+        JavaVersion javaVersion = getJavaVersion().get();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
@@ -754,18 +756,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
-     * Returns the directories for the compiled test sources.
-     *
-     * @return All test class directories to be used.
-     * @since 4.0
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public FileCollection getTestClassesDirs() {
-        return testClassesDirs;
-    }
-
-    /**
      * Sets the directories to scan for compiled test sources.
      *
      * Typically, this would be configured to use the output of a source set:
@@ -791,9 +781,15 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @param testClassesDirs All test class directories to be used.
      * @since 4.0
      */
-    public void setTestClassesDirs(FileCollection testClassesDirs) {
-        this.testClassesDirs = testClassesDirs;
-    }
+    /**
+     * Returns the directories for the compiled test sources.
+     *
+     * @return All test class directories to be used.
+     * @since 4.0
+     */
+    @Internal
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getTestClassesDirs();
 
     /**
      * Returns the include patterns for test execution.
@@ -1036,28 +1032,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Returns the classpath to use to execute the tests.
      */
     @Internal("captured by stableClasspath")
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Specifies whether test classes should be detected. When {@code true} the classes which match the include and exclude patterns are scanned for test classes, and any found are executed. When
      * {@code false} the classes which match the include and exclude patterns are executed.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isScanForTestClasses() {
-        return scanForTestClasses;
-    }
-
-    public void setScanForTestClasses(boolean scanForTestClasses) {
-        this.scanForTestClasses = scanForTestClasses;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getScanForTestClasses();
 
     /**
      * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be restarted when this limit is reached.
