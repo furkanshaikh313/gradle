@@ -25,6 +25,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
@@ -53,7 +54,18 @@ class DefaultBuildControllerTest extends Specification {
     def buildEventConsumer = Mock(BuildEventConsumer)
     def sideEffectExecutor = Mock(BuildTreeModelSideEffectExecutor)
     def payloadSerializer = Mock(PayloadSerializer)
-    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry, parameterCarrierFactory, buildEventConsumer, sideEffectExecutor, payloadSerializer)
+
+    def controller = new DefaultBuildController(
+        modelController,
+        workerThreadRegistry,
+        cancellationToken,
+        buildStateRegistry,
+        parameterCarrierFactory,
+        buildEventConsumer,
+        sideEffectExecutor,
+        payloadSerializer,
+        new TestBuildOperationRunner()
+    )
 
     def "cannot get build model from unmanaged thread"() {
         given:
