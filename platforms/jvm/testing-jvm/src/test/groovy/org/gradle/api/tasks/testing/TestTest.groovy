@@ -80,8 +80,8 @@ class TestTest extends AbstractConventionTaskTest {
 
     def "test default settings"() {
         expect:
-        test.getTestFramework() instanceof JUnitTestFramework
-        test.getTestClassesDirs() == null
+        test.getTestFramework().get() instanceof JUnitTestFramework
+        test.getTestClassesDirs().isEmpty()
         test.getClasspath().files.isEmpty()
         test.getReports().getJunitXml().outputLocation.getOrNull() == null
         test.getReports().getHtml().outputLocation.getOrNull() == null
@@ -247,7 +247,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.javaLauncher.set(launcher)
 
         then:
-        test.getJavaVersion().majorVersion == Integer.toString(jdk.javaVersionMajor)
+        test.getJavaVersion().get().majorVersion == Integer.toString(jdk.javaVersionMajor)
     }
 
     private void assertIsDirectoryTree(FileTreeInternal classFiles, Set<String> includes, Set<String> excludes) {
@@ -306,7 +306,7 @@ class TestTest extends AbstractConventionTaskTest {
 
         when:
         testTask.executable = executableDir.absolutePath
-        testTask.javaVersion
+        testTask.javaVersion.get()
 
         then:
         def e = thrown(AbstractProperty.PropertyQueryException)
@@ -321,7 +321,7 @@ class TestTest extends AbstractConventionTaskTest {
 
         when:
         testTask.executable = invalidJavac.absolutePath
-        testTask.javaVersion
+        testTask.javaVersion.get()
 
         then:
         def e = thrown(AbstractProperty.PropertyQueryException)
