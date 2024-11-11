@@ -178,7 +178,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     private final PatternFilterable patternSet;
     private final ConfigurableFileCollection stableClasspath;
-    private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
@@ -203,6 +202,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         getDryRun().convention(false);
         getScanForTestClasses().convention(true);
         getTestFramework().convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+        getForkEvery().convention(0L);
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -579,7 +579,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework().get(), classpath,
-            modulePath, getCandidateClassFiles(), getScanForTestClasses().get(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions,
+            modulePath, getCandidateClassFiles(), getScanForTestClasses().get(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery().get(), javaForkOptions,
             getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
@@ -1061,9 +1061,42 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @return The maximum number of test classes to execute in a test process. Returns 0 when there is no maximum.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public long getForkEvery() {
-        return getDebug().get() ? 0 : forkEvery;
+    @ReplacesEagerProperty(originalType = long.class, adapter = ForkEveryAdapter.class)
+    public abstract Property<Long> getForkEvery();
+
+    static class ForkEveryAdapter {
+
+        @BytecodeUpgrade
+        static long getForkEvery(Test test) {
+            return test.getDebug().get() ? 0 : test.getForkEvery().get();
+        }
+
+        @BytecodeUpgrade
+        static void setForkEvery(Test test, long forkEvery) {
+            if (forkEvery < 0) {
+                throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
+            }
+            test.getForkEvery().set(forkEvery);
+        }
+
+        @BytecodeUpgrade
+        static void setForkEvery(Test test, Long forkEvery) {
+            if (forkEvery == null) {
+                DeprecationLogger.deprecateBehaviour("Setting Test.forkEvery to null.")
+                    .withAdvice("Set Test.forkEvery to 0 instead.")
+                    .willBecomeAnErrorInGradle9()
+                    .withDslReference(Test.class, "forkEvery")
+                    .nagUser();
+                test.getForkEvery().set(0L);
+            } else {
+                DeprecationLogger.deprecateMethod(Test.class, "setForkEvery(Long)")
+                    .replaceWith("Test.setForkEvery(long)")
+                    .willBeRemovedInGradle9()
+                    .withDslReference(Test.class, "forkEvery")
+                    .nagUser();
+                setForkEvery(test, forkEvery.longValue());
+            }
+        }
     }
 
     /**
@@ -1075,40 +1108,25 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @param forkEvery The maximum number of test classes. Use 0 to specify no maximum.
      * @since 8.1
      */
-    public void setForkEvery(long forkEvery) {
-        if (forkEvery < 0) {
-            throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
-        }
-        this.forkEvery = forkEvery;
-    }
+//    public void setForkEvery(long forkEvery) {
+//        if (forkEvery < 0) {
+//            throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
+//        }
+//        this.forkEvery = forkEvery;
+//    }
 
-    /**
-     * Sets the maximum number of test classes to execute in a forked test process.
-     * <p>
-     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
-     * </p>
-     *
-     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
-     * @deprecated Use {@link #setForkEvery(long)} instead.
-     */
-    @Deprecated
-    public void setForkEvery(@Nullable Long forkEvery) {
-        if (forkEvery == null) {
-            DeprecationLogger.deprecateBehaviour("Setting Test.forkEvery to null.")
-                .withAdvice("Set Test.forkEvery to 0 instead.")
-                .willBecomeAnErrorInGradle9()
-                .withDslReference(Test.class, "forkEvery")
-                .nagUser();
-            setForkEvery(0);
-        } else {
-            DeprecationLogger.deprecateMethod(Test.class, "setForkEvery(Long)")
-                .replaceWith("Test.setForkEvery(long)")
-                .willBeRemovedInGradle9()
-                .withDslReference(Test.class, "forkEvery")
-                .nagUser();
-            setForkEvery(forkEvery.longValue());
-        }
-    }
+//    /**
+//     * Sets the maximum number of test classes to execute in a forked test process.
+//     * <p>
+//     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
+//     * </p>
+//     *
+//     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
+//     * @deprecated Use {@link #setForkEvery(long)} instead.
+//     */
+//    @Deprecated
+//    public void setForkEvery(@Nullable Long forkEvery) {
+//    }
 
     /**
      * Returns the maximum number of test processes to start in parallel.
