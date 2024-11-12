@@ -26,18 +26,18 @@ import javax.annotation.Nonnull;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
 
-    private final ProblemSummarizer problemSummarizer;
+    private final ProblemSummarizer problemEmitter;
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
     public DefaultProblemReporter(
-        ProblemSummarizer problemSummarizer,
+        ProblemSummarizer problemEmitter,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
         AdditionalDataBuilderFactory additionalDataBuilderFactory
     ) {
-        this.problemSummarizer = problemSummarizer;
+        this.problemEmitter = problemEmitter;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
@@ -112,6 +112,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        problemSummarizer.emit(problem, id);
+        problemEmitter.emit(problem, id);
     }
 }

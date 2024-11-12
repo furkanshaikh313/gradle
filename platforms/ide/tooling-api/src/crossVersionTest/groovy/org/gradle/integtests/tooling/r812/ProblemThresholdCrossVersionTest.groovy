@@ -25,11 +25,11 @@ import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
-import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
-import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD_OPTION
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.failureMessage
+import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
+import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_OPTION
 
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.12")
