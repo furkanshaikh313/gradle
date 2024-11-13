@@ -106,7 +106,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
             task tar(type: Tar) {
                 reproducibleFileOrder = true
                 preserveFileTimestamps = false
-                compression.set(Compression.${compression})
+                compression = Compression.${compression}
                 from 'dir1', 'dir2', 'dir3'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.tar.${compression}'
