@@ -17,10 +17,7 @@
 package org.gradle.caching.configuration;
 
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-
-import javax.inject.Inject;
 
 /**
  * Base implementation for build cache service configuration.
@@ -28,17 +25,10 @@ import javax.inject.Inject;
  * @since 3.5
  */
 public abstract class AbstractBuildCache implements BuildCache {
-    private final Property<Boolean> enabled = getObjectFactory().property(Boolean.class).convention(true);
-    private final Property<Boolean> push = getObjectFactory().property(Boolean.class).convention(false);
 
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Property<Boolean> getEnabled() {
-        return enabled;
+    public AbstractBuildCache() {
+        getEnabled().convention(true);
+        getPush().convention(false);
     }
 
     @Override
@@ -46,11 +36,6 @@ public abstract class AbstractBuildCache implements BuildCache {
     public Property<Boolean> getIsEnabled() {
         ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsEnabled()", "getEnabled()");
         return getEnabled();
-    }
-
-    @Override
-    public Property<Boolean> getPush() {
-        return push;
     }
 
     @Override

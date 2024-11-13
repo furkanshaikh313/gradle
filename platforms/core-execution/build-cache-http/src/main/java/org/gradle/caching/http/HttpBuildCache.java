@@ -17,11 +17,13 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -60,6 +62,11 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
 
     public HttpBuildCache() {
         this.credentials = getObjectFactory().newInstance(HttpBuildCacheCredentials.class);
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     /**
