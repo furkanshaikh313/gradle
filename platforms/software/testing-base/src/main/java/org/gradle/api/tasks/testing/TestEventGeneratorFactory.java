@@ -27,13 +27,17 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope({Scope.BuildSession.class})
 @Incubating
-public interface TestEventService {
+public interface TestEventGeneratorFactory {
     /**
      * Returns an object that can be used to generate Tooling API test events.
+     *
+     * <p>
+     * When closed, it will throw if the root node has been failed.
+     * </p>
      *
      * @param rootName the name for the root node of the test tree
      * @return the test event generator
      * @since 8.12
      */
-    CompositeTestEventGenerator generateTestEvents(String rootName);
+    CompositeTestEventGenerator createTestEventGenerator(String rootName);
 }

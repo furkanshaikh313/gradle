@@ -25,6 +25,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
+// Proper test display names were implemented in Gradle 8.8
 @ToolingApiVersion(">=8.8")
 @TargetGradleVersion(">=8.12")
 class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implements CustomTestEventsFixture {
@@ -42,19 +43,19 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
 
             abstract class CustomTestTask extends DefaultTask {
                 @Inject
-                abstract TestEventService getTestEventService()
+                abstract TestEventGeneratorFactory getTestEventGeneratorFactory()
 
                 @TaskAction
                 void runTests() {
-                    try (def generator = getTestEventService().generateTestEvents("Custom test root")) {
+                    try (def generator = getTestEventGeneratorFactory().createTestEventGenerator("Custom test root")) {
                         generator.started(Instant.now())
-                        try (def myTest = generator.createAtomicNode("MyTestInternal", "My test!")) {
+                        try (def myTest = generator.createTestNode("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
                             myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
                             myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
-                            myTest.completed(Instant.now(), TestResult.ResultType.SUCCESS)
+                            myTest.succeeded(Instant.now())
                         }
-                        generator.completed(Instant.now(), TestResult.ResultType.SUCCESS)
+                        generator.succeeded(Instant.now())
                     }
                 }
             }
@@ -90,23 +91,23 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
 
             abstract class CustomTestTask extends DefaultTask {
                 @Inject
-                abstract TestEventService getTestEventService()
+                abstract TestEventGeneratorFactory getTestEventGeneratorFactory()
 
                 @TaskAction
                 void runTests() {
-                    try (def generator = getTestEventService().generateTestEvents("Custom test root")) {
+                    try (def generator = getTestEventGeneratorFactory().createTestEventGenerator("Custom test root")) {
                         generator.started(Instant.now())
                         try (def mySuite = generator.createCompositeNode("My Suite")) {
                             mySuite.started(Instant.now())
-                            try (def myTest = mySuite.createAtomicNode("MyTestInternal", "My test!")) {
+                            try (def myTest = mySuite.createTestNode("MyTestInternal", "My test!")) {
                                  myTest.started(Instant.now())
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
-                                 myTest.completed(Instant.now(), TestResult.ResultType.SUCCESS)
+                                 myTest.succeeded(Instant.now())
                             }
-                            mySuite.completed(Instant.now(), TestResult.ResultType.SUCCESS)
+                            mySuite.succeeded(Instant.now())
                         }
-                        generator.completed(Instant.now(), TestResult.ResultType.SUCCESS)
+                        generator.succeeded(Instant.now())
                     }
                 }
             }
@@ -130,6 +131,75 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                     composite("My Suite") {
                         test("MyTestInternal") {
                             testDisplayName "My test!"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    def "reports custom test events (parameterized tests)"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventGeneratorFactory getTestEventGeneratorFactory()
+
+                @TaskAction
+                void runTests() {
+                    try (def generator = getTestEventGeneratorFactory().createTestEventGenerator("Custom test root")) {
+                        generator.started(Instant.now())
+                        try (def mySuite = generator.createCompositeNode("My Suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTestMethod = mySuite.createCompositeNode("myTestMethod")) {
+                                 myTestMethod.started(Instant.now())
+                                 try (def myTest = myTestMethod.createTestNode("myTestMethod[0]", "My test method! (foo=0)")) {
+                                     myTest.started(Instant.now())
+                                     myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                                     myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
+                                     myTest.succeeded(Instant.now())
+                                 }
+                                 try (def myTest = myTestMethod.createTestNode("myTestMethod[1]", "My test method! (foo=1)")) {
+                                     myTest.started(Instant.now())
+                                     myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                                     myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
+                                     myTest.succeeded(Instant.now())
+                                 }
+                                 myTestMethod.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                        }
+                        generator.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST)
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+        testEvents {
+            task(":customTest") {
+                composite("Custom test root") {
+                    composite("My Suite") {
+                        composite("myTestMethod") {
+                            test("myTestMethod[0]") {
+                                testDisplayName "My test method! (foo=0)"
+                            }
+                            test("myTestMethod[1]") {
+                                testDisplayName "My test method! (foo=1)"
+                            }
                         }
                     }
                 }

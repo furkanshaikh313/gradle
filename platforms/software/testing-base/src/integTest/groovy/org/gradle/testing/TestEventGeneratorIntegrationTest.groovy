@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-class TestEventServicesIntegrationTest extends AbstractIntegrationSpec {
+class TestEventGeneratorIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
@@ -37,29 +37,28 @@ class TestEventServicesIntegrationTest extends AbstractIntegrationSpec {
 
             abstract class CustomTestTask extends DefaultTask {
                 @Inject
-                abstract TestEventService getTestEventService()
+                abstract TestEventGeneratorFactory getTestEventGeneratorFactory()
 
                 @TaskAction
                 void runTests() {
-                   try (def generator = getTestEventService().generateTestEvents("Custom test root")) {
+                   try (def generator = getTestEventGeneratorFactory().createTestEventGenerator("Custom test root")) {
                        generator.started(Instant.now())
                        try (def mySuite = generator.createCompositeNode("My Suite")) {
                             mySuite.started(Instant.now())
-                            try (def myTest = mySuite.createAtomicNode("MyTestInternal", "My test!")) {
+                            try (def myTest = mySuite.createTestNode("MyTestInternal", "My test!")) {
                                  myTest.started(Instant.now())
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
-                                 myTest.completed(Instant.now(), TestResult.ResultType.SUCCESS)
+                                 myTest.succeeded(Instant.now())
                             }
-                            try (def myTest = mySuite.createAtomicNode("MyTestInternal2", "My failing test :(")) {
+                            try (def myTest = mySuite.createTestNode("MyTestInternal2", "My failing test :(")) {
                                  myTest.started(Instant.now())
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "Some text on stderr")
-                                 myTest.failure(new RuntimeException("Test framework failure"))
-                                 myTest.completed(Instant.now(), TestResult.ResultType.FAILURE)
+                                 myTest.failed(Instant.now(), "Test framework failure")
                             }
-                            mySuite.completed(Instant.now(), TestResult.ResultType.FAILURE)
+                            mySuite.failed(Instant.now())
                        }
-                       generator.completed(Instant.now(), TestResult.ResultType.FAILURE)
+                       generator.failed(Instant.now())
                    }
                 }
             }

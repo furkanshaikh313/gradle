@@ -20,22 +20,22 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.tasks.testing.CompositeTestEventGenerator;
-import org.gradle.api.tasks.testing.TestEventService;
+import org.gradle.api.tasks.testing.TestEventGeneratorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 
 @NonNullApi
-public final class DefaultTestEventService implements TestEventService {
+public final class DefaultTestEventGeneratorFactory implements TestEventGeneratorFactory {
     private final TestListenerBuildOperationAdapter testListenerBuildOperationAdapter;
 
-    public DefaultTestEventService(TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
+    public DefaultTestEventGeneratorFactory(TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
         this.testListenerBuildOperationAdapter = testListenerBuildOperationAdapter;
     }
 
     @Override
-    public CompositeTestEventGenerator generateTestEvents(String rootName) {
+    public CompositeTestEventGenerator createTestEventGenerator(String rootName) {
         TestResultProcessor processor = new StateTrackingTestResultProcessor(testListenerBuildOperationAdapter);
         IdGenerator<?> idGenerator = new LongIdGenerator();
-        return new DefaultRootTestEventGenerator(processor, idGenerator, null, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName));
+        return new DefaultRootTestEventGenerator(processor, idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName));
     }
 }

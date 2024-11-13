@@ -26,27 +26,27 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface CompositeTestEventGenerator extends TestEventGenerator {
     /**
-     * Create an atomic node test event generator. This can be used, for example, to add a node for each method in a tested class.
+     * Create a 'test' test event generator. This can be used, for example, to emit events for each method in a tested class.
      *
      * <p>
-     * Since this is a atomic node, it will not have any children. To add children, use {@link #createCompositeNode(String)}.
+     * Since this is a 'test' node, it will not have any children. To add children, use {@link #createCompositeNode(String)}.
      * </p>
      *
-     * @param name the name of the node
-     * @param displayName the display name of the node
+     * @param name the name of the test
+     * @param displayName the display name of the test
      * @return the nested test event generator
      * @since 8.12
      */
-    TestEventGenerator createAtomicNode(String name, String displayName);
+    TestEventGenerator createTestNode(String name, String displayName);
 
     /**
-     * Create a nested composite test event generator. This can be used, for example, to add a node for a tested class.
+     * Create a composite test event generator. This can be used, for example, to emit events for a tested class, or a parameterized test method (but not the individual parameterized tests).
      *
      * <p>
-     * Since this is a composite node, it can have children. To add an atomic node, use {@link #createAtomicNode(String, String)}.
+     * Since this is a composite, it can have children. To add a 'test' node, use {@link #createTestNode(String, String)}.
      * </p>
      *
-     * @param name the name of the node
+     * @param name the name of the composite
      * @return the nested test event generator
      * @since 8.12
      */
