@@ -27,8 +27,8 @@ import javax.inject.Inject;
  * @since 3.5
  */
 public abstract class AbstractBuildCache implements BuildCache {
-    private Property<Boolean> enabled = getObjectFactory().property(Boolean.class).convention(false);
-    private Property<Boolean> push = getObjectFactory().property(Boolean.class).convention(false);
+    private final Property<Boolean> enabled = getObjectFactory().property(Boolean.class).convention(false);
+    private final Property<Boolean> push = getObjectFactory().property(Boolean.class).convention(false);
 
     @Inject
     protected ObjectFactory getObjectFactory() {
@@ -41,7 +41,19 @@ public abstract class AbstractBuildCache implements BuildCache {
     }
 
     @Override
+    @Deprecated
+    public Property<Boolean> getIsEnabled() {
+        return getEnabled();
+    }
+
+    @Override
     public Property<Boolean> getPush() {
         return push;
+    }
+
+    @Override
+    @Deprecated
+    public Property<Boolean> getIsPush() {
+        return getPush();
     }
 }
