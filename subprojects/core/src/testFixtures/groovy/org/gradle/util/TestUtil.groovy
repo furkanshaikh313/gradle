@@ -51,6 +51,7 @@ import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
@@ -58,12 +59,15 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
+
+import java.util.function.Supplier
 
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
@@ -86,11 +90,14 @@ class TestUtil {
 
     static InstantiatorFactory instantiatorFactory() {
         if (instantiatorFactory == null) {
-            NativeServicesTestFixture.initialize()
-            def annotationHandlers = ProjectBuilderImpl.getGlobalServices().getAll(InjectAnnotationHandler.class)
-            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers, new OutputPropertyRoleAnnotationHandler([]))
+            instantiatorFactory = createInstantiatorFactory({ [] })
         }
         return instantiatorFactory
+    }
+
+    static InstantiatorFactory createInstantiatorFactory(Supplier<List<InjectAnnotationHandler>> injectHandlers) {
+        NativeServicesTestFixture.initialize()
+        return new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), injectHandlers.get(), new OutputPropertyRoleAnnotationHandler([]))
     }
 
     static ManagedFactoryRegistry managedFactoryRegistry() {
@@ -133,6 +140,10 @@ class TestUtil {
 
     static CalculatedValueContainerFactory calculatedValueContainerFactory() {
         return new CalculatedValueContainerFactory(new TestWorkerLeaseService(), services())
+    }
+
+    static InMemoryCacheFactory inMemoryCacheFactory() {
+        return new InMemoryCacheFactory(new DefaultWorkerLimits(Runtime.getRuntime().availableProcessors()), calculatedValueContainerFactory())
     }
 
     static StateTransitionControllerFactory stateTransitionControllerFactory() {
