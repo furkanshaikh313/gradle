@@ -16,6 +16,7 @@
 
 package org.gradle.caching.configuration;
 
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 
@@ -43,6 +44,7 @@ public abstract class AbstractBuildCache implements BuildCache {
     @Override
     @Deprecated
     public Property<Boolean> getIsEnabled() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsEnabled()", "getEnabled()");
         return getEnabled();
     }
 
@@ -54,6 +56,7 @@ public abstract class AbstractBuildCache implements BuildCache {
     @Override
     @Deprecated
     public Property<Boolean> getIsPush() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsPush()", "getPush()");
         return getPush();
     }
 }
