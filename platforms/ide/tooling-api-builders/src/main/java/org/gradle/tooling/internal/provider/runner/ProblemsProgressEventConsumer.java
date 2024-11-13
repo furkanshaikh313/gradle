@@ -165,7 +165,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         );
     }
 
-    private static InternalProblemId toInternalId(ProblemId problemId) {
+    static InternalProblemId toInternalId(ProblemId problemId) {
         return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(problemId.getGroup()));
     }
 
