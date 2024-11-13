@@ -124,7 +124,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         DirectoryBuildCache local = createBuildCacheConfiguration(instantiator, DirectoryBuildCache.class, registrations);
         // By default, we push to the local cache.
         local.getPush().set(true);
-        local.getEnabled().set(true);
         return local;
     }
 
@@ -132,7 +131,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         T remote = createBuildCacheConfiguration(instantiator, type, registrations);
         // By default, we do not push to the remote cache.
         remote.getPush().set(false);
-        remote.getEnabled().set(true);
         return remote;
     }
 

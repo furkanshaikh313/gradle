@@ -28,7 +28,7 @@ import javax.inject.Inject;
  * @since 3.5
  */
 public abstract class AbstractBuildCache implements BuildCache {
-    private final Property<Boolean> enabled = getObjectFactory().property(Boolean.class).convention(false);
+    private final Property<Boolean> enabled = getObjectFactory().property(Boolean.class).convention(true);
     private final Property<Boolean> push = getObjectFactory().property(Boolean.class).convention(false);
 
     @Inject
