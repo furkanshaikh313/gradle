@@ -48,7 +48,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
     def buildCacheEnabled = true
     def buildOperationRunner = new TestBuildOperationRunner()
     def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
-    def config = new DefaultBuildCacheConfiguration(TestUtil.instantiatorFactory().inject(), [
+    def config = new DefaultBuildCacheConfiguration(TestUtil.instantiatorFactory().decorate(TestUtil.createTestServices()), [
         new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestOtherRemoteBuildCache, TestOtherRemoteBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
