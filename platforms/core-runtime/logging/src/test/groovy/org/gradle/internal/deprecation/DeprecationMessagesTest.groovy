@@ -64,7 +64,7 @@ class DeprecationMessagesTest extends Specification {
         currentBuildRef.getId() >> identifier
 
         def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter, currentBuildRef, new ExceptionProblemContainer(), null), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter, null, currentBuildRef, new ExceptionProblemContainer(), null), diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {

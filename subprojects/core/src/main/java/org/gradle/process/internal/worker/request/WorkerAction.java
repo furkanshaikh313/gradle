@@ -89,7 +89,8 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                         null,
                         CurrentBuildOperationRef.instance(),
                         new ExceptionProblemContainer(),
-                        null));
+                        null
+                    ));
                 })
                 .build();
             Class<?> workerImplementation = Class.forName(workerImplementationName);

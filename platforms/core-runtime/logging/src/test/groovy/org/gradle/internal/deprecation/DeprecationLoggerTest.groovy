@@ -44,7 +44,8 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         null,
         CurrentBuildOperationRef.instance(),
         new ExceptionProblemContainer(),
-        null)
+        null
+    )
 
     def setup() {
         DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, problems, diagnosticsFactory.newUnlimitedStream())

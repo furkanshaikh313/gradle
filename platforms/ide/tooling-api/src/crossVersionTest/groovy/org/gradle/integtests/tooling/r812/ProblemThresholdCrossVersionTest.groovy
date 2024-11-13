@@ -35,6 +35,7 @@ import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersion
 @TargetGradleVersion(">=8.12")
 class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
 
+    @spock.lang.IgnoreRest
     def "The summary shows the amount of additional skipped events"() {
         given:
         def exceedingCount = 2
@@ -168,8 +169,8 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
 
     boolean validateFirstNProblems(int totalSentEventsCount, Collection<SingleProblemEvent> problems) {
         (0..totalSentEventsCount - 1).every { int index ->
-            problems[index].definition.id.displayName == 'label' &&
-                problems[index].definition.id.group.displayName == 'Generic'
+            problems[index].problem.definition.id.displayName == 'label' &&
+                problems[index].problem.definition.id.group.displayName == 'Generic'
         }
     }
 

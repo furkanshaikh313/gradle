@@ -42,8 +42,8 @@ class ValidationProblemSerializationTest extends Specification {
             Stub(ProblemSummarizer),
             null,
             CurrentBuildOperationRef.instance(),
-            new ExceptionProblemContainer(),
             new AdditionalDataBuilderFactory(),
+            new ExceptionProblemContainer(),
             Mock(ExceptionAnalyser)
     )
 

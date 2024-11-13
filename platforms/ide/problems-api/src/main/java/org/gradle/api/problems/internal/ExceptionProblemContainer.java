@@ -45,8 +45,4 @@ public class ExceptionProblemContainer {
     public Map<Throwable, Collection<Problem>> getProblemsForThrowables() {
         return problemsForThrowables.asMap();
     }
-
-    public void clear() {
-        problemsForThrowables.clear();
-    }
 }
